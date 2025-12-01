@@ -89,12 +89,14 @@ function showError(msg){
 }
 
 async function addAd(title, price, desc){
-    const ad = { title, price, desc, time: Date.now() };
+    const ad = { title, price, desc, time: new Date().toISOString() };
     const res = await fetch(endpoint, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify(ad)
     });
+    const text = await res.text();
+    console.log('POST response:', text);
     return res.ok;
 }
 
@@ -104,13 +106,13 @@ async function loadAds(){
     try{
         const res = await fetch(endpoint);
         const ads = await res.json();
-        if(ads.length === 0){
+        if(!Array.isArray(ads) || ads.length === 0){
             box.innerHTML = "هیچ آگهی ثبت نشده.";
             return;
         }
         box.innerHTML = "";
         ads.slice().reverse().forEach(a=>{
-            const date = new Date(a.time).toLocaleString("fa-IR");
+            const date = a.time ? new Date(a.time).toLocaleString("fa-IR") : '';
             box.innerHTML += `
             <div class="card">
                 <b>${a.title}</b> — ${a.price} تومان<br>
@@ -144,12 +146,16 @@ function submitAd(){
             document.getElementById("title").value="";
             document.getElementById("price").value="";
             document.getElementById("desc").value="";
-            showPage('pageHome');
+            loadAds();             // فوراً در صفحه نمایش داده شود
+            showPage('pageList');  // برو به صفحه لیست
         } else {
             showError("خطا در ثبت آگهی");
         }
     });
 }
+
+// بارگزاری اولیه لیست آگهی‌ها
+loadAds();
 </script>
 
 </body>
