@@ -2,58 +2,50 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>دیوار روستا — Yari</title>
+<title>دیوار روستا — crudcrud</title>
 <style>
-    body{
-        font-family: sans-serif;
-        direction: rtl;
-        background:#f2f2f2;
-        margin:0;
-        padding:0;
-    }
-
-    .container{
-        width:90%;
-        max-width:700px;
-        margin:auto;
-        padding:20px;
-    }
-
-    button{
-        padding:10px 15px;
-        background:#007bff;
-        border:none;
-        color:white;
-        border-radius:6px;
-        cursor:pointer;
-    }
-    button:hover{ background:#005fcc; }
-
-    .card{
-        background:white;
-        padding:12px;
-        margin-bottom:12px;
-        border-radius:7px;
-        box-shadow:0 0 3px rgba(0,0,0,0.2);
-    }
-
-    .hidden{display:none;}
-
-    input,textarea{
-        width:100%;
-        padding:8px;
-        margin-bottom:10px;
-        border-radius:6px;
-        border:1px solid #aaa;
-    }
-
-    .error{
-        background:#ffe1e1;
-        border:1px solid red;
-        padding:10px;
-        margin:10px 0;
-    }
-
+body{
+    font-family: sans-serif;
+    direction: rtl;
+    background:#f2f2f2;
+    margin:0; padding:0;
+}
+.container{
+    width:90%;
+    max-width:700px;
+    margin:auto;
+    padding:20px;
+}
+button{
+    padding:10px 15px;
+    background:#007bff;
+    border:none;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+button:hover{ background:#005fcc; }
+.card{
+    background:white;
+    padding:12px;
+    margin-bottom:12px;
+    border-radius:7px;
+    box-shadow:0 0 3px rgba(0,0,0,0.2);
+}
+.hidden{display:none;}
+input,textarea{
+    width:100%;
+    padding:8px;
+    margin-bottom:10px;
+    border-radius:6px;
+    border:1px solid #aaa;
+}
+.error{
+    background:#ffe1e1;
+    border:1px solid red;
+    padding:10px;
+    margin:10px 0;
+}
 </style>
 </head>
 <body>
@@ -61,111 +53,104 @@
 <div class="container" id="pageHome">
     <h1>🌾 دیوار روستا</h1>
     <p>ثبت آگهی — مشاهده آگهی‌ها</p>
-
     <button onclick="showPage('pageAdd')">➕ ثبت آگهی</button>
     <button onclick="showPage('pageList')">📋 مشاهده آگهی‌ها</button>
 </div>
 
-
-<!-- صفحه ثبت آگهی -->
 <div class="container hidden" id="pageAdd">
     <h2>ثبت آگهی 📝</h2>
-
     <input id="title" placeholder="عنوان آگهی">
     <input id="price" placeholder="قیمت (تومان)">
     <textarea id="desc" placeholder="توضیحات"></textarea>
-
     <div id="errBox"></div>
-
-    <button onclick="addAd()">📌 ثبت نهایی</button>
+    <button onclick="submitAd()">📌 ثبت نهایی</button>
     <button onclick="showPage('pageHome')">بازگشت</button>
 </div>
 
-
-<!-- صفحه نمایش آگهی ها -->
 <div class="container hidden" id="pageList">
     <h2>📢 آگهی‌های ثبت شده</h2>
-    <div id="adsBox">در حال بارگذاری...</div>
+    <div id="adsBox">در حال دریافت...</div>
     <br>
     <button onclick="showPage('pageHome')">بازگشت</button>
 </div>
 
-
 <script>
-// آرایه برای نگهداری آگهی‌ها
-let ads = [];
+// ======== API endpoint شما ========
+const endpoint = 'https://crudcrud.com/api/30e7d4246d234e7ea7efff3107cd5328/ads';
 
-// تغییر صفحه
 function showPage(id){
     document.querySelectorAll(".container").forEach(c=>c.classList.add("hidden"));
     document.getElementById(id).classList.remove("hidden");
-
-    // هنگام ورود به صفحه لیست، آگهی‌ها را بارگذاری کن
     if(id === "pageList") loadAds();
 }
 
-// نمایش خطا
 function showError(msg){
     document.getElementById("errBox").innerHTML = `<div class="error">${msg}</div>`;
 }
 
-// ثبت آگهی جدید
-function addAd(){
-    const titleEl = document.getElementById("title");
-    const priceEl = document.getElementById("price");
-    const descEl = document.getElementById("desc");
+async function addAd(title, price, desc){
+    const ad = { title, price, desc, time: Date.now() };
+    const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(ad)
+    });
+    return res.ok;
+}
 
-    const title = titleEl.value.trim();
-    const price = priceEl.value.trim();
-    const desc = descEl.value.trim();
+async function loadAds(){
+    const box = document.getElementById("adsBox");
+    box.innerHTML = "در حال دریافت...";
+    try{
+        const res = await fetch(endpoint);
+        const ads = await res.json();
+        if(ads.length === 0){
+            box.innerHTML = "هیچ آگهی ثبت نشده.";
+            return;
+        }
+        box.innerHTML = "";
+        ads.slice().reverse().forEach(a=>{
+            const date = new Date(a.time).toLocaleString("fa-IR");
+            box.innerHTML += `
+            <div class="card">
+                <b>${a.title}</b> — ${a.price} تومان<br>
+                ${a.desc}<br>
+                <small style="color:#555">تاریخ ثبت: ${date}</small>
+            </div>`;
+        });
+    }catch(e){
+        box.innerHTML = "خطا در دریافت آگهی‌ها";
+        console.error(e);
+    }
+}
+
+function submitAd(){
+    const title = document.getElementById("title").value.trim();
+    const price = document.getElementById("price").value.trim();
+    const desc = document.getElementById("desc").value.trim();
 
     if(!title || !price){
         showError("عنوان و قیمت الزامی هستند");
         return;
     }
-
-    if(isNaN(price) || Number(price) <= 0){
+    if(isNaN(price) || Number(price)<=0){
         showError("قیمت باید عددی مثبت باشد");
         return;
     }
 
-    // اضافه کردن به آرایه
-    ads.push({
-        title: title,
-        price: Number(price),
-        desc: desc,
-        time: Date.now()
-    });
-
-    // پاک کردن فرم
-    titleEl.value = "";
-    priceEl.value = "";
-    descEl.value = "";
-    showPage('pageHome');
-}
-
-// نمایش آگهی‌ها
-function loadAds(){
-    const box = document.getElementById("adsBox");
-    box.innerHTML = "";
-
-    if(ads.length === 0){
-        box.innerHTML = "هیچ آگهی ثبت نشده.";
-        return;
-    }
-
-    // مرتب‌سازی بر اساس زمان ثبت
-    ads.slice().reverse().forEach(a=>{
-        const date = new Date(a.time).toLocaleString("fa-IR");
-        box.innerHTML += `
-            <div class="card">
-                <b>${a.title}</b> — ${a.price} تومان<br>
-                ${a.desc}<br>
-                <small style="color:#555">تاریخ ثبت: ${date}</small>
-            </div>
-        `;
+    addAd(title, Number(price), desc).then(ok=>{
+        if(ok){
+            alert("آگهی ثبت شد ✔️");
+            document.getElementById("title").value="";
+            document.getElementById("price").value="";
+            document.getElementById("desc").value="";
+            showPage('pageHome');
+        } else {
+            showError("خطا در ثبت آگهی");
+        }
     });
 }
 </script>
+
 </body>
 </html>
