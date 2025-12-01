@@ -212,7 +212,6 @@ function editAd(id,title,desc,price,phone){
   document.getElementById('adPhone').value = phone;
   priceDisplay.textContent = price.toLocaleString('fa') + ' تومان';
 
-  // override submitAd temporarily
   const btn = document.querySelector('#pageAdd button');
   btn.textContent = 'ذخیره تغییرات';
   btn.onclick = async ()=>{
