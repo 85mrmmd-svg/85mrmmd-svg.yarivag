@@ -2,315 +2,258 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>دیوار روستا — نسخه کامل</title>
+<title>دیوار روستا</title>
 <style>
-body {
-    font-family: sans-serif;
-    direction: rtl;
-    background:#f2f2f2;
-    margin:0;
-    padding:0;
-}
-.container {
-    width:90%;
-    max-width:700px;
-    margin:auto;
-    padding:20px;
-    background:white;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
-    margin-top:30px;
-}
-h1,h2 {
-    text-align:center;
-    color:#007bff;
-}
-input,textarea,button {
-    width:100%;
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:6px;
-    border:1px solid #aaa;
-    font-size:16px;
-}
-button {
-    background:#007bff;
-    color:white;
-    border:none;
-    cursor:pointer;
-}
-button:hover {
-    background:#005fcc;
-}
-.card {
-    background:#eaf0ff;
-    padding:12px;
-    margin-bottom:12px;
-    border-radius:7px;
-    box-shadow:0 0 3px rgba(0,0,0,0.2);
-}
-.error {
-    background:#ffe1e1;
-    border:1px solid red;
-    padding:10px;
-    margin:10px 0;
-}
-.hidden {display:none;}
-.action-btn {
-    padding:5px 10px;
-    margin:2px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-}
-.edit-btn {background:#ffc107; color:#fff;}
-.delete-btn {background:#dc3545; color:#fff;}
+body { font-family: Tahoma,sans-serif; direction: rtl; background:#f2f2f2; margin:0; padding:0; }
+.container{ width:90%; max-width:700px; margin:auto; padding:20px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.2); margin-top:20px;}
+h1,h2,h3{text-align:center;}
+input, textarea{ width:100%; padding:8px; margin-bottom:10px; border-radius:6px; border:1px solid #aaa; }
+button{ padding:10px 15px; background:#007bff; border:none; color:white; border-radius:6px; cursor:pointer; margin-top:5px;}
+button:hover{ background:#005fcc; }
+.hidden{display:none;}
+.error{ background:#ffe1e1; border:1px solid red; padding:10px; margin:10px 0;}
+.card{ background:#fafafa; padding:12px; margin-bottom:12px; border-radius:7px; box-shadow:0 0 3px rgba(0,0,0,0.1);}
+.priceDisplay{ color:green; font-weight:bold; margin-bottom:5px;}
+.adButtons{ margin-top:5px; }
+.adButtons button{ background:#28a745; margin-left:5px;}
+.adButtons button.delete{ background:#dc3545; }
+.adButtons button:hover{ opacity:0.85; }
 </style>
 </head>
 <body>
 
-<!-- صفحه ورود و ثبت نام -->
 <div class="container" id="pageAuth">
-    <h1>🌾 دیوار روستا</h1>
-    <div id="authBox">
-        <button onclick="showAuth('login')">ورود</button>
-        <button onclick="showAuth('register')">ثبت نام</button>
-    </div>
+<h1>🌾 دیوار روستا</h1>
+<button onclick="showAuth('register')">ثبت نام</button>
+<button onclick="showAuth('login')">ورود</button>
 
-    <div id="loginBox" class="hidden">
-        <h2>ورود</h2>
-        <input id="loginPhone" placeholder="شماره تلفن">
-        <input type="password" id="loginPass" placeholder="رمز عبور">
-        <div id="loginErr" class="error hidden"></div>
-        <button onclick="loginUser()">ورود</button>
-        <button onclick="showAuth('auth')">بازگشت</button>
-    </div>
-
-    <div id="registerBox" class="hidden">
-        <h2>ثبت نام</h2>
-        <input id="regName" placeholder="نام و نام خانوادگی">
-        <input id="regPhone" placeholder="شماره تلفن">
-        <input type="password" id="regPass" placeholder="رمز عبور">
-        <div id="regErr" class="error hidden"></div>
-        <button onclick="registerUser()">شروع</button>
-        <button onclick="showAuth('auth')">بازگشت</button>
-    </div>
+<div id="registerForm" class="hidden">
+<h3>ثبت نام</h3>
+<input id="regFullname" placeholder="نام و نام خانوادگی">
+<input id="regPhone" placeholder="شماره تلفن">
+<input id="regPassword" type="password" placeholder="رمز عبور">
+<div id="regError" class="error hidden"></div>
+<button onclick="registerUser()">شروع</button>
 </div>
 
-<!-- صفحه آگهی‌ها -->
-<div class="container hidden" id="pageAds">
-    <h2>📢 آگهی‌ها</h2>
-    <input id="searchInput" placeholder="جستجو بر اساس عنوان یا شماره تماس" oninput="loadAds()">
-    <div id="adsBox">در حال دریافت...</div>
-    <button onclick="logout()">خروج</button>
-    <hr>
-    <h2>ثبت آگهی جدید</h2>
-    <input id="adTitle" placeholder="عنوان آگهی">
-    <textarea id="adDesc" placeholder="توضیحات"></textarea>
-    <input id="adPrice" placeholder="قیمت (تومان)" oninput="formatPrice()">
-    <div id="priceFormatted" style="color:#555;"></div>
-    <input id="adPhone" placeholder="شماره تماس">
-    <div id="adErr" class="error hidden"></div>
-    <button onclick="submitAd()">ثبت آگهی</button>
+<div id="loginForm" class="hidden">
+<h3>ورود</h3>
+<input id="logPhone" placeholder="شماره تلفن">
+<input id="logPassword" type="password" placeholder="رمز عبور">
+<div id="logError" class="error hidden"></div>
+<button onclick="loginUser()">ورود</button>
+</div>
 </div>
 
-<script>
-// ======== API endpoint ========
-const userEndpoint = 'https://crudcrud.com/api/30e7d4246d234e7ea7efff3107cd5328/users';
-const adEndpoint = 'https://crudcrud.com/api/30e7d4246d234e7ea7efff3107cd5328/ads';
+<div class="container hidden" id="pageHome">
+<h2>سلام <span id="userName"></span></h2>
+<button onclick="showPage('pageAdd')">➕ ثبت آگهی</button>
+<button onclick="showPage('pageList')">📋 مشاهده آگهی‌ها</button>
+<button onclick="logout()">خروج</button>
+</div>
 
-// ======== الفاظ رکیک ========
-const badWords = ['کلمه_بد1','کلمه_بد2'];
+<div class="container hidden" id="pageAdd">
+<h2>ثبت آگهی 📝</h2>
+<input id="adTitle" placeholder="عنوان آگهی">
+<textarea id="adDesc" placeholder="توضیحات"></textarea>
+<input id="adPrice" placeholder="قیمت (تومان)">
+<div id="priceDisplay" class="priceDisplay"></div>
+<input id="adPhone" placeholder="شماره تماس">
+<div id="adError" class="error hidden"></div>
+<button onclick="submitAd()">ثبت نهایی</button>
+<button onclick="showPage('pageHome')">بازگشت</button>
+</div>
 
-// ======== کاربر فعلی ========
+<div class="container hidden" id="pageList">
+<h2>📢 آگهی‌های ثبت شده</h2>
+<div id="adsBox">در حال دریافت...</div>
+<br>
+<button onclick="showPage('pageHome')">بازگشت</button>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const supabaseUrl = 'https://kwkzrqywsttohdrfvnup.supabase.co';
+const supabaseKey = 'sb_publishable_P4_QztgH0ihIioZ8B0kIiw_pt1GBRf4';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 let currentUser = null;
 
-// ======== نمایش فرم ورود یا ثبت نام ========
+// ------------------- Navigation -------------------
+function showPage(id){
+  document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
 function showAuth(type){
-    document.getElementById('loginBox').classList.add('hidden');
-    document.getElementById('registerBox').classList.add('hidden');
-    document.getElementById('loginErr').classList.add('hidden');
-    document.getElementById('regErr').classList.add('hidden');
-    if(type==='login') document.getElementById('loginBox').classList.remove('hidden');
-    else if(type==='register') document.getElementById('registerBox').classList.remove('hidden');
-    else document.getElementById('authBox').classList.remove('hidden');
+  document.getElementById('registerForm').classList.add('hidden');
+  document.getElementById('loginForm').classList.add('hidden');
+  if(type==='register') document.getElementById('registerForm').classList.remove('hidden');
+  else document.getElementById('loginForm').classList.remove('hidden');
 }
 
-// ======== ثبت نام ========
+// ------------------- Auth -------------------
 async function registerUser(){
-    const name = document.getElementById('regName').value.trim();
-    const phone = document.getElementById('regPhone').value.trim();
-    const pass = document.getElementById('regPass').value.trim();
-    const errBox = document.getElementById('regErr');
+  const fullname = document.getElementById('regFullname').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+  const err = document.getElementById('regError');
 
-    if(!name || !phone || !pass){
-        errBox.innerText = 'همه فیلدها الزامی است';
-        errBox.classList.remove('hidden');
-        return;
-    }
+  if(!fullname || !phone || !password){
+    err.textContent = 'همه فیلدها الزامی است';
+    err.classList.remove('hidden'); return;
+  }
 
-    const res = await fetch(userEndpoint);
-    const users = await res.json();
-    if(users.find(u=>u.phone===phone)){
-        errBox.innerText = 'این شماره قبلا ثبت شده';
-        errBox.classList.remove('hidden');
-        return;
-    }
+  const { data, error } = await supabase.from('users').insert([{fullname, phone, password}]).select();
+  if(error){ err.textContent = 'این شماره قبلا ثبت شده است'; err.classList.remove('hidden'); return; }
 
-    await fetch(userEndpoint,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({fullname:name, phone, password:pass})
-    });
-
-    alert('ثبت نام موفق ✔️');
-    showAuth('login');
+  currentUser = {id: data[0].id, fullname, phone};
+  document.getElementById('userName').textContent = fullname;
+  showPage('pageHome');
 }
 
-// ======== ورود ========
 async function loginUser(){
-    const phone = document.getElementById('loginPhone').value.trim();
-    const pass = document.getElementById('loginPass').value.trim();
-    const errBox = document.getElementById('loginErr');
+  const phone = document.getElementById('logPhone').value.trim();
+  const password = document.getElementById('logPassword').value.trim();
+  const err = document.getElementById('logError');
 
-    if(!phone || !pass){
-        errBox.innerText = 'هر دو فیلد الزامی است';
-        errBox.classList.remove('hidden');
-        return;
-    }
+  if(!phone || !password){ err.textContent = 'همه فیلدها الزامی است'; err.classList.remove('hidden'); return; }
 
-    const res = await fetch(userEndpoint);
-    const users = await res.json();
-    const user = users.find(u=>u.phone===phone && u.password===pass);
-    if(!user){
-        errBox.innerText = 'شماره یا رمز اشتباه یا ثبت نام نشده';
-        errBox.classList.remove('hidden');
-        return;
-    }
+  const { data, error } = await supabase.from('users').select('*').eq('phone',phone).eq('password',password).limit(1);
+  if(error || data.length===0){ err.textContent = 'شماره یا رمز اشتباه است'; err.classList.remove('hidden'); return; }
 
-    currentUser = user;
-    showPageAds();
+  currentUser = {id: data[0].id, fullname:data[0].fullname, phone:data[0].phone};
+  document.getElementById('userName').textContent = currentUser.fullname;
+  showPage('pageHome');
 }
 
-// ======== خروج ========
 function logout(){
-    currentUser = null;
-    showAuth('auth');
+  currentUser = null;
+  showPage('pageAuth');
 }
 
-// ======== نمایش صفحه آگهی‌ها ========
-function showPageAds(){
-    document.getElementById('pageAuth').classList.add('hidden');
-    document.getElementById('pageAds').classList.remove('hidden');
-    loadAds();
+// ------------------- Price formatting -------------------
+const adPrice = document.getElementById('adPrice');
+const priceDisplay = document.getElementById('priceDisplay');
+adPrice.addEventListener('input',()=>{
+  let val = parseInt(adPrice.value.replace(/,/g,'')) || 0;
+  priceDisplay.textContent = val.toLocaleString('fa') + ' تومان';
+});
+
+// ------------------- Bad word filter -------------------
+const badWords = ['کلمه_رکیک1','کلمه_رکیک2','کلمه_رکیک3'];
+function containsBadWords(text){
+  text = text.toLowerCase();
+  return badWords.some(word=>text.includes(word));
 }
 
-// ======== قالب‌بندی قیمت ========
-function formatPrice(){
-    const input = document.getElementById('adPrice');
-    let val = input.value.replace(/\D/g,'');
-    if(!val) {document.getElementById('priceFormatted').innerText=''; return;}
-    let formatted = Number(val).toLocaleString('en-US');
-    let farsiText = Number(val).toLocaleString('fa-IR');
-    document.getElementById('priceFormatted').innerText = formatted+' تومان ('+farsiText+')';
-    input.value = val;
-}
-
-// ======== بررسی الفاظ رکیک ========
-function hasBadWords(text){
-    const lower = text.toLowerCase();
-    return badWords.some(word=>lower.includes(word));
-}
-
-// ======== ثبت آگهی ========
+// ------------------- Submit ad -------------------
 async function submitAd(){
-    const title = document.getElementById('adTitle').value.trim();
-    const desc = document.getElementById('adDesc').value.trim();
-    const price = document.getElementById('adPrice').value.trim();
-    const phone = document.getElementById('adPhone').value.trim();
-    const errBox = document.getElementById('adErr');
+  if(!currentUser){ alert('ابتدا وارد شوید'); return; }
+  const title = document.getElementById('adTitle').value.trim();
+  const desc = document.getElementById('adDesc').value.trim();
+  const price = parseInt(document.getElementById('adPrice').value.replace(/,/g,''))||0;
+  const phone = document.getElementById('adPhone').value.trim();
+  const err = document.getElementById('adError');
 
-    errBox.classList.add('hidden');
-    if(!title || !desc || !price || !phone){
-        errBox.innerText = 'همه فیلدها الزامی است';
-        errBox.classList.remove('hidden');
-        return;
+  if(!title || !desc || !price || !phone){
+    err.textContent = 'همه فیلدها الزامی است';
+    err.classList.remove('hidden'); return;
+  }
+  if(containsBadWords(title+desc)){
+    err.textContent = 'متن دارای الفاظ رکیک است';
+    err.classList.remove('hidden'); return;
+  }
+
+  await supabase.from('ads').insert([{title, desc, price, phone, user_id: currentUser.id}]);
+  alert('آگهی ثبت شد ✔️');
+  document.getElementById('adTitle').value='';
+  document.getElementById('adDesc').value='';
+  document.getElementById('adPrice').value='';
+  document.getElementById('adPhone').value='';
+  priceDisplay.textContent='';
+  showPage('pageHome');
+  loadAds();
+}
+
+// ------------------- Load ads with edit/delete -------------------
+async function loadAds(){
+  const box = document.getElementById('adsBox');
+  const { data, error } = await supabase.from('ads').select('*').order('created_at',{ascending:false});
+  if(error){ box.textContent='خطا در دریافت آگهی‌ها'; return; }
+  if(data.length===0){ box.textContent='هیچ آگهی ثبت نشده.'; return; }
+
+  box.innerHTML = '';
+  data.forEach(ad=>{
+    let buttons = '';
+    if(currentUser && ad.user_id === currentUser.id){
+      buttons = `<div class="adButtons">
+        <button onclick="editAd('${ad.id}','${ad.title}','${ad.desc}','${ad.price}','${ad.phone}')">ویرایش</button>
+        <button class="delete" onclick="deleteAd('${ad.id}')">حذف</button>
+      </div>`;
     }
-    if(hasBadWords(title) || hasBadWords(desc)){
-        errBox.innerText = 'این کلمات ممنوع است';
-        errBox.classList.remove('hidden');
-        return;
+
+    box.innerHTML += `
+      <div class="card">
+        <b>${ad.title}</b> — ${ad.price.toLocaleString('fa')} تومان<br>
+        ${ad.desc}<br>
+        شماره تماس: ${ad.phone}
+        ${buttons}
+      </div>`;
+  });
+}
+
+// ------------------- Edit ad -------------------
+function editAd(id,title,desc,price,phone){
+  showPage('pageAdd');
+  document.getElementById('adTitle').value = title;
+  document.getElementById('adDesc').value = desc;
+  document.getElementById('adPrice').value = price;
+  document.getElementById('adPhone').value = phone;
+  priceDisplay.textContent = price.toLocaleString('fa') + ' تومان';
+
+  // override submitAd temporarily
+  const btn = document.querySelector('#pageAdd button');
+  btn.textContent = 'ذخیره تغییرات';
+  btn.onclick = async ()=>{
+    const newTitle = document.getElementById('adTitle').value.trim();
+    const newDesc = document.getElementById('adDesc').value.trim();
+    const newPrice = parseInt(document.getElementById('adPrice').value.replace(/,/g,''))||0;
+    const newPhone = document.getElementById('adPhone').value.trim();
+
+    if(!newTitle || !newDesc || !newPrice || !newPhone){
+      document.getElementById('adError').textContent='همه فیلدها الزامی است';
+      document.getElementById('adError').classList.remove('hidden'); return;
+    }
+    if(containsBadWords(newTitle+newDesc)){
+      document.getElementById('adError').textContent='متن دارای الفاظ رکیک است';
+      document.getElementById('adError').classList.remove('hidden'); return;
     }
 
-    await fetch(adEndpoint,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-            title, desc, price:Number(price), phone, userId:currentUser._id, time: new Date().toISOString()
-        })
-    });
-
+    await supabase.from('ads').update({title:newTitle,desc:newDesc,price:newPrice,phone:newPhone}).eq('id',id);
+    alert('آگهی ویرایش شد ✔️');
+    btn.textContent='ثبت نهایی';
+    btn.onclick = submitAd;
     document.getElementById('adTitle').value='';
     document.getElementById('adDesc').value='';
     document.getElementById('adPrice').value='';
-    document.getElementById('priceFormatted').innerText='';
     document.getElementById('adPhone').value='';
+    priceDisplay.textContent='';
+    showPage('pageHome');
     loadAds();
+  }
 }
 
-// ======== بارگزاری آگهی‌ها ========
-async function loadAds(){
-    const box = document.getElementById('adsBox');
-    const search = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
-    box.innerHTML = 'در حال دریافت...';
-    const res = await fetch(adEndpoint);
-    const ads = await res.json();
-    box.innerHTML = '';
-    if(ads.length===0){
-        box.innerHTML='هیچ آگهی ثبت نشده.';
-        return;
-    }
-
-    ads.slice().reverse().forEach(a=>{
-        const date = a.time ? new Date(a.time).toLocaleString('fa-IR') : '';
-        let priceFarsi = Number(a.price).toLocaleString('fa-IR')+' تومان';
-
-        if(search && !a.title.toLowerCase().includes(search) && !a.phone.includes(search)){
-            return;
-        }
-
-        box.innerHTML += `
-        <div class="card">
-            <b>${a.title}</b> — ${priceFarsi}<br>
-            ${a.desc}<br>
-            شماره تماس: ${a.phone}<br>
-            <small style="color:#555">تاریخ ثبت: ${date}</small><br>
-            ${a.userId===currentUser._id ? `
-            <button class="action-btn edit-btn" onclick='editAd("${a._id}")'>ویرایش</button>
-            <button class="action-btn delete-btn" onclick='deleteAd("${a._id}")'>حذف</button>`:''}
-        </div>`;
-    });
-}
-
-// ======== حذف آگهی ========
+// ------------------- Delete ad -------------------
 async function deleteAd(id){
-    if(!confirm('آیا مطمئن هستید؟')) return;
-    await fetch(`${adEndpoint}/${id}`, {method:'DELETE'});
+  if(confirm('آیا مطمئن هستید که می‌خواهید این آگهی را حذف کنید؟')){
+    await supabase.from('ads').delete().eq('id',id);
+    alert('آگهی حذف شد ✔️');
     loadAds();
+  }
 }
 
-// ======== ویرایش آگهی ========
-async function editAd(id){
-    const res = await fetch(`${adEndpoint}/${id}`);
-    const ad = await res.json();
-    document.getElementById('adTitle').value = ad.title;
-    document.getElementById('adDesc').value = ad.desc;
-    document.getElementById('adPrice').value = ad.price;
-    formatPrice();
-    document.getElementById('adPhone').value = ad.phone;
-
-    await fetch(`${adEndpoint}/${id}`, {method:'DELETE'});
-}
+loadAds();
 </script>
 
 </body>
