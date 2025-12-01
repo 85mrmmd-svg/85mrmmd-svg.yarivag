@@ -75,12 +75,9 @@
     <input id="price" placeholder="قیمت (تومان)">
     <textarea id="desc" placeholder="توضیحات"></textarea>
 
-    <p>انتخاب 3 تصویر (حداکثر)</p>
-    <input type="file" id="imgs" accept="image/*" multiple>
-
     <div id="errBox"></div>
 
-    <button onclick="uploadAd()">📌 ثبت نهایی</button>
+    <button onclick="addAd()">📌 ثبت نهایی</button>
     <button onclick="showPage('pageHome')">بازگشت</button>
 </div>
 
@@ -94,131 +91,81 @@
 </div>
 
 
-<!-- صفحه خطا -->
-<div class="container hidden" id="pageError">
-    <h2>⚠️ خطا</h2>
-    <p id="errText">مشکل غیرمنتظره رخ داد.</p>
-    <button onclick="showPage('pageHome')">بازگشت</button>
-</div>
-
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-
 <script>
-// ------------------ Firebase Config ------------------
-const firebaseConfig = {
-  apiKey: "AIzaSyDrw4BGlqE73KzqfvlffD5njbK_HZWJP0s",
-  authDomain: "yarivag-sity.firebaseapp.com",
-  projectId: "yarivag-sity",
-  storageBucket: "yarivag-sity.firebasestorage.app",
-  messagingSenderId: "481949392702",
-  appId: "1:481949392702:web:bba54ec37dc19e6db4166f",
-  measurementId: "G-WMY8E6WY6F"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// آرایه برای نگهداری آگهی‌ها
+let ads = [];
 
-// ------------------ imgbb key ------------------
-const imgbbKey = "15848ef4bdb83801fddd4f3c173a4072";
-
-
-// -------- تغییر صفحه --------
+// تغییر صفحه
 function showPage(id){
     document.querySelectorAll(".container").forEach(c=>c.classList.add("hidden"));
     document.getElementById(id).classList.remove("hidden");
+
+    // هنگام ورود به صفحه لیست، آگهی‌ها را بارگذاری کن
+    if(id === "pageList") loadAds();
 }
 
-
-// -------- نمایش خطا --------
+// نمایش خطا
 function showError(msg){
     document.getElementById("errBox").innerHTML = `<div class="error">${msg}</div>`;
 }
 
+// ثبت آگهی جدید
+function addAd(){
+    const titleEl = document.getElementById("title");
+    const priceEl = document.getElementById("price");
+    const descEl = document.getElementById("desc");
 
-// ------------------ آپلود آگهی ------------------
-async function uploadAd(){
-    const title = title.value.trim();
-    const price = price.value.trim();
-    const desc  = desc.value.trim();
-    const files = imgs.files;
+    const title = titleEl.value.trim();
+    const price = priceEl.value.trim();
+    const desc = descEl.value.trim();
 
     if(!title || !price){
         showError("عنوان و قیمت الزامی هستند");
         return;
     }
 
-    if(files.length === 0){
-        showError("حداقل یک عکس انتخاب شود");
+    if(isNaN(price) || Number(price) <= 0){
+        showError("قیمت باید عددی مثبت باشد");
         return;
     }
 
-    if(files.length > 3){
-        showError("حداکثر ۳ عکس مجاز است");
-        return;
-    }
-
-    try{
-        let urls = [];
-
-        // 1: آپلود هر عکس به imgbb
-        for(let f of files){
-            let form = new FormData();
-            form.append("image", f);
-
-            let res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`,{
-                method:"POST",
-                body:form
-            });
-
-            let json = await res.json();
-            if(!json.data) throw("خطا در آپلود تصویر");
-            urls.push(json.data.url);
-        }
-
-        // 2: ذخیره در Firebase
-        await db.collection("ads").add({
-            title, price, desc,
-            imgs: urls,
-            time: Date.now()
-        });
-
-        alert("آگهی ثبت شد ✔️");
-        showPage('pageHome');
-
-    }catch(err){
-        document.getElementById("errText").innerHTML = err.toString();
-        showPage("pageError");
-    }
-}
-
-
-// ------------------ دریافت آگهی ها ------------------
-async function loadAds(){
-    const box = document.getElementById("adsBox");
-    box.innerHTML = "در حال دریافت...";
-
-    let q = await db.collection("ads").orderBy("time","desc").get();
-    box.innerHTML = "";
-
-    q.forEach(doc=>{
-        let d = doc.data();
-        let imgs = d.imgs.map(i=>`<img src="${i}" width="100" style="margin:3px;border-radius:6px;">`).join("");
-
-        box.innerHTML += `
-        <div class="card">
-            <b>${d.title}</b> — ${d.price} تومان <br>
-            ${d.desc}<br>
-            <div>${imgs}</div>
-        </div>`;
+    // اضافه کردن به آرایه
+    ads.push({
+        title: title,
+        price: Number(price),
+        desc: desc,
+        time: Date.now()
     });
 
-    if(box.innerHTML === "") box.innerHTML = "هیچ آگهی ثبت نشده.";
+    // پاک کردن فرم
+    titleEl.value = "";
+    priceEl.value = "";
+    descEl.value = "";
+    showPage('pageHome');
 }
 
-showAds = loadAds;
-loadAds();
+// نمایش آگهی‌ها
+function loadAds(){
+    const box = document.getElementById("adsBox");
+    box.innerHTML = "";
+
+    if(ads.length === 0){
+        box.innerHTML = "هیچ آگهی ثبت نشده.";
+        return;
+    }
+
+    // مرتب‌سازی بر اساس زمان ثبت
+    ads.slice().reverse().forEach(a=>{
+        const date = new Date(a.time).toLocaleString("fa-IR");
+        box.innerHTML += `
+            <div class="card">
+                <b>${a.title}</b> — ${a.price} تومان<br>
+                ${a.desc}<br>
+                <small style="color:#555">تاریخ ثبت: ${date}</small>
+            </div>
+        `;
+    });
+}
 </script>
 </body>
 </html>
