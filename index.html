@@ -2,160 +2,315 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>دیوار روستا — crudcrud</title>
+<title>دیوار روستا — نسخه کامل</title>
 <style>
-body{
+body {
     font-family: sans-serif;
     direction: rtl;
     background:#f2f2f2;
-    margin:0; padding:0;
+    margin:0;
+    padding:0;
 }
-.container{
+.container {
     width:90%;
     max-width:700px;
     margin:auto;
     padding:20px;
+    background:white;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    margin-top:30px;
 }
-button{
-    padding:10px 15px;
-    background:#007bff;
-    border:none;
-    color:white;
+h1,h2 {
+    text-align:center;
+    color:#007bff;
+}
+input,textarea,button {
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
     border-radius:6px;
+    border:1px solid #aaa;
+    font-size:16px;
+}
+button {
+    background:#007bff;
+    color:white;
+    border:none;
     cursor:pointer;
 }
-button:hover{ background:#005fcc; }
-.card{
-    background:white;
+button:hover {
+    background:#005fcc;
+}
+.card {
+    background:#eaf0ff;
     padding:12px;
     margin-bottom:12px;
     border-radius:7px;
     box-shadow:0 0 3px rgba(0,0,0,0.2);
 }
-.hidden{display:none;}
-input,textarea{
-    width:100%;
-    padding:8px;
-    margin-bottom:10px;
-    border-radius:6px;
-    border:1px solid #aaa;
-}
-.error{
+.error {
     background:#ffe1e1;
     border:1px solid red;
     padding:10px;
     margin:10px 0;
 }
+.hidden {display:none;}
+.action-btn {
+    padding:5px 10px;
+    margin:2px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+.edit-btn {background:#ffc107; color:#fff;}
+.delete-btn {background:#dc3545; color:#fff;}
 </style>
 </head>
 <body>
 
-<div class="container" id="pageHome">
+<!-- صفحه ورود و ثبت نام -->
+<div class="container" id="pageAuth">
     <h1>🌾 دیوار روستا</h1>
-    <p>ثبت آگهی — مشاهده آگهی‌ها</p>
-    <button onclick="showPage('pageAdd')">➕ ثبت آگهی</button>
-    <button onclick="showPage('pageList')">📋 مشاهده آگهی‌ها</button>
+    <div id="authBox">
+        <button onclick="showAuth('login')">ورود</button>
+        <button onclick="showAuth('register')">ثبت نام</button>
+    </div>
+
+    <div id="loginBox" class="hidden">
+        <h2>ورود</h2>
+        <input id="loginPhone" placeholder="شماره تلفن">
+        <input type="password" id="loginPass" placeholder="رمز عبور">
+        <div id="loginErr" class="error hidden"></div>
+        <button onclick="loginUser()">ورود</button>
+        <button onclick="showAuth('auth')">بازگشت</button>
+    </div>
+
+    <div id="registerBox" class="hidden">
+        <h2>ثبت نام</h2>
+        <input id="regName" placeholder="نام و نام خانوادگی">
+        <input id="regPhone" placeholder="شماره تلفن">
+        <input type="password" id="regPass" placeholder="رمز عبور">
+        <div id="regErr" class="error hidden"></div>
+        <button onclick="registerUser()">شروع</button>
+        <button onclick="showAuth('auth')">بازگشت</button>
+    </div>
 </div>
 
-<div class="container hidden" id="pageAdd">
-    <h2>ثبت آگهی 📝</h2>
-    <input id="title" placeholder="عنوان آگهی">
-    <input id="price" placeholder="قیمت (تومان)">
-    <textarea id="desc" placeholder="توضیحات"></textarea>
-    <div id="errBox"></div>
-    <button onclick="submitAd()">📌 ثبت نهایی</button>
-    <button onclick="showPage('pageHome')">بازگشت</button>
-</div>
-
-<div class="container hidden" id="pageList">
-    <h2>📢 آگهی‌های ثبت شده</h2>
+<!-- صفحه آگهی‌ها -->
+<div class="container hidden" id="pageAds">
+    <h2>📢 آگهی‌ها</h2>
+    <input id="searchInput" placeholder="جستجو بر اساس عنوان یا شماره تماس" oninput="loadAds()">
     <div id="adsBox">در حال دریافت...</div>
-    <br>
-    <button onclick="showPage('pageHome')">بازگشت</button>
+    <button onclick="logout()">خروج</button>
+    <hr>
+    <h2>ثبت آگهی جدید</h2>
+    <input id="adTitle" placeholder="عنوان آگهی">
+    <textarea id="adDesc" placeholder="توضیحات"></textarea>
+    <input id="adPrice" placeholder="قیمت (تومان)" oninput="formatPrice()">
+    <div id="priceFormatted" style="color:#555;"></div>
+    <input id="adPhone" placeholder="شماره تماس">
+    <div id="adErr" class="error hidden"></div>
+    <button onclick="submitAd()">ثبت آگهی</button>
 </div>
 
 <script>
-// ======== API endpoint شما ========
-const endpoint = 'https://crudcrud.com/api/30e7d4246d234e7ea7efff3107cd5328/ads';
+// ======== API endpoint ========
+const userEndpoint = 'https://crudcrud.com/api/30e7d4246d234e7ea7efff3107cd5328/users';
+const adEndpoint = 'https://crudcrud.com/api/30e7d4246d234e7ea7efff3107cd5328/ads';
 
-function showPage(id){
-    document.querySelectorAll(".container").forEach(c=>c.classList.add("hidden"));
-    document.getElementById(id).classList.remove("hidden");
-    if(id === "pageList") loadAds();
+// ======== الفاظ رکیک ========
+const badWords = ['کلمه_بد1','کلمه_بد2'];
+
+// ======== کاربر فعلی ========
+let currentUser = null;
+
+// ======== نمایش فرم ورود یا ثبت نام ========
+function showAuth(type){
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('registerBox').classList.add('hidden');
+    document.getElementById('loginErr').classList.add('hidden');
+    document.getElementById('regErr').classList.add('hidden');
+    if(type==='login') document.getElementById('loginBox').classList.remove('hidden');
+    else if(type==='register') document.getElementById('registerBox').classList.remove('hidden');
+    else document.getElementById('authBox').classList.remove('hidden');
 }
 
-function showError(msg){
-    document.getElementById("errBox").innerHTML = `<div class="error">${msg}</div>`;
-}
+// ======== ثبت نام ========
+async function registerUser(){
+    const name = document.getElementById('regName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const pass = document.getElementById('regPass').value.trim();
+    const errBox = document.getElementById('regErr');
 
-async function addAd(title, price, desc){
-    const ad = { title, price, desc, time: new Date().toISOString() };
-    const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(ad)
+    if(!name || !phone || !pass){
+        errBox.innerText = 'همه فیلدها الزامی است';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    const res = await fetch(userEndpoint);
+    const users = await res.json();
+    if(users.find(u=>u.phone===phone)){
+        errBox.innerText = 'این شماره قبلا ثبت شده';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    await fetch(userEndpoint,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({fullname:name, phone, password:pass})
     });
-    const text = await res.text();
-    console.log('POST response:', text);
-    return res.ok;
+
+    alert('ثبت نام موفق ✔️');
+    showAuth('login');
 }
 
+// ======== ورود ========
+async function loginUser(){
+    const phone = document.getElementById('loginPhone').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    const errBox = document.getElementById('loginErr');
+
+    if(!phone || !pass){
+        errBox.innerText = 'هر دو فیلد الزامی است';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    const res = await fetch(userEndpoint);
+    const users = await res.json();
+    const user = users.find(u=>u.phone===phone && u.password===pass);
+    if(!user){
+        errBox.innerText = 'شماره یا رمز اشتباه یا ثبت نام نشده';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    currentUser = user;
+    showPageAds();
+}
+
+// ======== خروج ========
+function logout(){
+    currentUser = null;
+    showAuth('auth');
+}
+
+// ======== نمایش صفحه آگهی‌ها ========
+function showPageAds(){
+    document.getElementById('pageAuth').classList.add('hidden');
+    document.getElementById('pageAds').classList.remove('hidden');
+    loadAds();
+}
+
+// ======== قالب‌بندی قیمت ========
+function formatPrice(){
+    const input = document.getElementById('adPrice');
+    let val = input.value.replace(/\D/g,'');
+    if(!val) {document.getElementById('priceFormatted').innerText=''; return;}
+    let formatted = Number(val).toLocaleString('en-US');
+    let farsiText = Number(val).toLocaleString('fa-IR');
+    document.getElementById('priceFormatted').innerText = formatted+' تومان ('+farsiText+')';
+    input.value = val;
+}
+
+// ======== بررسی الفاظ رکیک ========
+function hasBadWords(text){
+    const lower = text.toLowerCase();
+    return badWords.some(word=>lower.includes(word));
+}
+
+// ======== ثبت آگهی ========
+async function submitAd(){
+    const title = document.getElementById('adTitle').value.trim();
+    const desc = document.getElementById('adDesc').value.trim();
+    const price = document.getElementById('adPrice').value.trim();
+    const phone = document.getElementById('adPhone').value.trim();
+    const errBox = document.getElementById('adErr');
+
+    errBox.classList.add('hidden');
+    if(!title || !desc || !price || !phone){
+        errBox.innerText = 'همه فیلدها الزامی است';
+        errBox.classList.remove('hidden');
+        return;
+    }
+    if(hasBadWords(title) || hasBadWords(desc)){
+        errBox.innerText = 'این کلمات ممنوع است';
+        errBox.classList.remove('hidden');
+        return;
+    }
+
+    await fetch(adEndpoint,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            title, desc, price:Number(price), phone, userId:currentUser._id, time: new Date().toISOString()
+        })
+    });
+
+    document.getElementById('adTitle').value='';
+    document.getElementById('adDesc').value='';
+    document.getElementById('adPrice').value='';
+    document.getElementById('priceFormatted').innerText='';
+    document.getElementById('adPhone').value='';
+    loadAds();
+}
+
+// ======== بارگزاری آگهی‌ها ========
 async function loadAds(){
-    const box = document.getElementById("adsBox");
-    box.innerHTML = "در حال دریافت...";
-    try{
-        const res = await fetch(endpoint);
-        const ads = await res.json();
-        if(!Array.isArray(ads) || ads.length === 0){
-            box.innerHTML = "هیچ آگهی ثبت نشده.";
+    const box = document.getElementById('adsBox');
+    const search = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+    box.innerHTML = 'در حال دریافت...';
+    const res = await fetch(adEndpoint);
+    const ads = await res.json();
+    box.innerHTML = '';
+    if(ads.length===0){
+        box.innerHTML='هیچ آگهی ثبت نشده.';
+        return;
+    }
+
+    ads.slice().reverse().forEach(a=>{
+        const date = a.time ? new Date(a.time).toLocaleString('fa-IR') : '';
+        let priceFarsi = Number(a.price).toLocaleString('fa-IR')+' تومان';
+
+        if(search && !a.title.toLowerCase().includes(search) && !a.phone.includes(search)){
             return;
         }
-        box.innerHTML = "";
-        ads.slice().reverse().forEach(a=>{
-            const date = a.time ? new Date(a.time).toLocaleString("fa-IR") : '';
-            box.innerHTML += `
-            <div class="card">
-                <b>${a.title}</b> — ${a.price} تومان<br>
-                ${a.desc}<br>
-                <small style="color:#555">تاریخ ثبت: ${date}</small>
-            </div>`;
-        });
-    }catch(e){
-        box.innerHTML = "خطا در دریافت آگهی‌ها";
-        console.error(e);
-    }
-}
 
-function submitAd(){
-    const title = document.getElementById("title").value.trim();
-    const price = document.getElementById("price").value.trim();
-    const desc = document.getElementById("desc").value.trim();
-
-    if(!title || !price){
-        showError("عنوان و قیمت الزامی هستند");
-        return;
-    }
-    if(isNaN(price) || Number(price)<=0){
-        showError("قیمت باید عددی مثبت باشد");
-        return;
-    }
-
-    addAd(title, Number(price), desc).then(ok=>{
-        if(ok){
-            alert("آگهی ثبت شد ✔️");
-            document.getElementById("title").value="";
-            document.getElementById("price").value="";
-            document.getElementById("desc").value="";
-            loadAds();             // فوراً در صفحه نمایش داده شود
-            showPage('pageList');  // برو به صفحه لیست
-        } else {
-            showError("خطا در ثبت آگهی");
-        }
+        box.innerHTML += `
+        <div class="card">
+            <b>${a.title}</b> — ${priceFarsi}<br>
+            ${a.desc}<br>
+            شماره تماس: ${a.phone}<br>
+            <small style="color:#555">تاریخ ثبت: ${date}</small><br>
+            ${a.userId===currentUser._id ? `
+            <button class="action-btn edit-btn" onclick='editAd("${a._id}")'>ویرایش</button>
+            <button class="action-btn delete-btn" onclick='deleteAd("${a._id}")'>حذف</button>`:''}
+        </div>`;
     });
 }
 
-// بارگزاری اولیه لیست آگهی‌ها
-loadAds();
+// ======== حذف آگهی ========
+async function deleteAd(id){
+    if(!confirm('آیا مطمئن هستید؟')) return;
+    await fetch(`${adEndpoint}/${id}`, {method:'DELETE'});
+    loadAds();
+}
+
+// ======== ویرایش آگهی ========
+async function editAd(id){
+    const res = await fetch(`${adEndpoint}/${id}`);
+    const ad = await res.json();
+    document.getElementById('adTitle').value = ad.title;
+    document.getElementById('adDesc').value = ad.desc;
+    document.getElementById('adPrice').value = ad.price;
+    formatPrice();
+    document.getElementById('adPhone').value = ad.phone;
+
+    await fetch(`${adEndpoint}/${id}`, {method:'DELETE'});
+}
 </script>
 
 </body>
