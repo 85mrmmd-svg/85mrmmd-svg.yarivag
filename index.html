@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
 <body>
-<h2>تست اتصال Supabase</h2>
-<div id="status">در حال تست…</div>
+<h2>📡 تست اتصال Supabase</h2>
+<div id="status">⏳ در حال تست...</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- نسخه صحیح: نسخه UMD -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+
 <script>
-const supabase = supabase.createClient(
+const client = Supabase.createClient(
   "https://kwkzrqywsttohdrfvnup.supabase.co",
   "sb_publishable_P4_QztgH0ihIioZ8B0kIiw_pt1GBRf4"
 );
 
 (async ()=>{
-  const { data, error } = await supabase.from("users").select("*").limit(1);
+  const { data, error } = await client.from("users").select("*").limit(1);
   const box = document.getElementById("status");
 
   if(error){
-    box.innerHTML = "❌ اتصال برقرار نشد<br>"+error.message;
-  }else{
+    box.innerHTML = "❌ اتصال برقرار نشد:<br>" + error.message;
+  } else {
     box.innerHTML = "✅ اتصال برقرار است";
   }
 })();
