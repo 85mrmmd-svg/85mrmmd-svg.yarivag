@@ -1,27 +1,155 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>فروش ولت — Just Wallet</title>
+  <style>
+    :root{
+      --tether-green: #26A17B;
+      --tether-dark: #1f7b60;
+      --muted: #6b6b6b;
+      --bg: #f6fdf9;
+      --card: #ffffff;
+      --accent: #e8f6f1;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: "Vazir", Tahoma, Arial, sans-serif;
+      background: linear-gradient(180deg,var(--bg),#eef9f4 60%);
+      color:#0b2b24;
+      padding:24px;
+    }
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+    }
+    header{
+      display:flex;align-items:center;gap:16px;margin-bottom:20px;
+    }
+    .logo{
+      width:72px;height:72px;border-radius:14px;
+      background:linear-gradient(135deg,var(--tether-green),var(--tether-dark));
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-weight:700;font-size:18px;
+      box-shadow:0 6px 18px rgba(6,90,70,0.12);
+    }
+    h1{margin:0;font-size:22px}
+    p.lead{margin:6px 0 0;color:var(--muted)}
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:20px;margin-top:18px;
+    }
+    .card{
+      background:var(--card);
+      padding:18px;border-radius:12px;
+      box-shadow:0 8px 30px rgba(12,60,50,0.06);
+    }
+    table{
+      width:100%;border-collapse:collapse;margin-top:8px;font-size:14px;
+    }
+    th,td{
+      text-align:right;padding:12px 10px;border-bottom:1px solid #eef6f2;
+    }
+    th{
+      font-weight:700;color:var(--tether-dark);
+      background:linear-gradient(90deg, rgba(38,161,123,0.06), transparent)
+    }
+    .amount{font-weight:700}
+    .discount{color:var(--tether-dark);font-weight:700}
+    .buy-btn{
+      display:inline-block;padding:8px 10px;border-radius:10px;
+      background:var(--tether-green);color:white;text-decoration:none;
+      font-weight:700;font-size:12px;
+    }
+    .note{font-size:13px;color:var(--muted);margin-top:8px}
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
 <body>
-<h2>📡 تسhت Supabase (نسخه Cloudflare)</h2>
-<div id="status">⏳ در حال تست...</div>
+  <div class="container">
+    <header>
+      <div class="logo">JW</div>
+      <div>
+        <h1>فروش و بازیابی انواع ولت</h1>
+        <p class="lead">زیر نظر شرکت بزرگ و معتبر BTC TURK</p>
+      </div>
+    </header>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.7/supabase.min.js"></script>
+    <div class="grid">
+      <main>
+        <section class="card">
+          <h2>قیمت ولت‌ها</h2>
+          <p class="note">قیمت نهایی برابر است با ۱۰٪ موجودی ولت.</p>
 
-<script>
-const client = supabase.createClient(
-  "https://kwkzrqywsttohdrfvnup.supabase.co",
-  "sb_publishable_P4_QztgH0ihIioZ8B0kIiw_pt1GBRf4"
-);
+          <table>
+            <thead>
+              <tr>
+                <th>موجودی ولت (USD)</th>
+                <th>قیمت ولت(تتر)</th>
+                <th>خرید</th>
+              </tr>
+            </thead>
+            <tbody>
 
-(async ()=>{
-  const box = document.getElementById("status");
-  const { data, error } = await client.from('users').select('*').limit(1);
+              <!-- ولت ۱۰۰۰ تا ۵۰۰۰۰۰ دلار با قیمت ۱۰٪ -->
+              <!-- در صورت نیاز می‌توانم جدول را تا ۵۰۰ هزار دلار کامل کنم -->
 
-  if(error){
-    box.innerHTML = "❌ خطا: " + error.message;
-  } else {
-    box.innerHTML = "✅ اتصال برقرار است";
-  }
-})();
-</script>
+              <tr>
+                <td class="amount">1,000دلار</td>
+                <td class="discount">110 $</td>
+                <td><a class="buy-btn" target="_blank" href="https://instagram.com/hack_wallets ">خرید از اینستاگرام</a></td>
+              </tr>
+
+              <tr>
+                <td class="amount">3,000دلار</td>
+                <td class="discount">310 $</td>
+                <td><a class="buy-btn" target="_blank" href="https://instagram.com/hack_wallets ">خرید از اینستاگرام</a></td>
+              </tr>
+
+              <tr>
+                <td class="amount">5,000دلار</td>
+                <td class="discount">500 $</td>
+                <td><a class="buy-btn" target="_blank" href="https://instagram.com/hack_wallets ">خرید از اینستاگرام</a></td>
+              </tr>
+
+              <tr>
+                <td class="amount">1,000دلار</td>
+                <td class="discount">890 $</td>
+                <td><a class="buy-btn" target="_blank" href="https://instagram.com/hack_wallets ">خرید از اینستاگرام</a></td>
+              </tr>
+
+            </tbody>
+          </table>
+
+          <p class="note">
+            ولت‌ها تا سقف ۵۰۰,۰۰۰ دلار نیز موجود است. جهت استعلام قیمت دقیق، لطفاً از طریق اینستاگرام پیام دهید.
+          </p>
+        </section>
+
+        <!-- FAQ جدید -->
+        <section class="card" style="margin-top:16px">
+          <h3>سوالات متداول</h3>
+          <ul style="margin:8px 0 0;padding-right:14px;color:var(--muted);line-height:1.8">
+            <li><strong>قیمت‌ها به چه ارزی هستند؟</strong> همه قیمت ها به نرخ تتر می‌باشد.</li>
+            <li><strong>پرداخت چگونه است؟</strong> پرداخت به صورت ارز دیجیتال تتر و یا ترون انجام می‌شود.</li>
+            <li><strong>آیا ضمانت یا پشتیبانی وجود دارد؟</strong> تا زمان نقد کردن ولت، از تیم ما پشتیبانی دریافت خواهید کرد و در صورت وجود هرگونه مشکل، ولت جدید تحویل داده می‌شود.</li>
+          </ul>
+        </section>
+      </main>
+
+      <aside>
+        <div class="card">
+          <h3>خرید از اینستاگرام</h3>
+          <p class="note">برای خرید یا استعلام موجودی روی لینک زیر بزنید:</p>
+          <a class="buy-btn" href="https://instagram.com/hack_wallets " target="_blank">ورود به اینستاگرام</a>
+        </div>
+      </aside>
+    </div>
+  </div>
 </body>
 </html>
